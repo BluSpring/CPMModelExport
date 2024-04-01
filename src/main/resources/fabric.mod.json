@@ -1,0 +1,30 @@
+{
+    "schemaVersion": 1,
+    "id": "cpmmodelexport",
+    "version": "${version}",
+    "name": "CPMModelExport",
+    "description": "",
+    "authors": [],
+    "contact": {
+        "repo": "https://github.com/BluSpring/CPMModelExport"
+    },
+    "license": "MIT",
+    "icon": "assets/cpmmodelexport/icon.png",
+    "environment": "client",
+    "entrypoints": {
+        "client": [
+            "xyz.bluspring.cpmmodelexport.client.CPMModelExportClient"
+        ],
+        "main": [
+            "xyz.bluspring.cpmmodelexport.CPMModelExport"
+        ]
+    },
+    "mixins": [
+        "cpmmodelexport.mixins.json"
+    ],
+    "depends": {
+        "fabricloader": ">=${loader_version}",
+        "fabric": "*",
+        "minecraft": "${minecraft_version}"
+    }
+}
