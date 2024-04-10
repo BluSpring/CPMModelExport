@@ -6,42 +6,31 @@ import com.google.gson.JsonObject;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.tom.cpl.util.Image;
 import com.tom.cpl.util.ImageIO;
-import com.tom.cpm.CustomPlayerModels;
 import com.tom.cpm.client.CustomPlayerModelsClient;
 import com.tom.cpm.shared.MinecraftClientAccess;
-import com.tom.cpm.shared.config.ResourceLoader;
-import com.tom.cpm.shared.definition.Link;
-import com.tom.cpm.shared.definition.ModelDefinition;
 import com.tom.cpm.shared.definition.ModelDefinitionLoader;
-import com.tom.cpm.shared.editor.Exporter;
 import com.tom.cpm.shared.effects.*;
 import com.tom.cpm.shared.io.ChecksumInputStream;
 import com.tom.cpm.shared.io.ChecksumOutputStream;
 import com.tom.cpm.shared.io.IOHelper;
-import com.tom.cpm.shared.io.SkinDataInputStream;
-import com.tom.cpm.shared.model.Cube;
 import com.tom.cpm.shared.model.RenderedCube;
 import com.tom.cpm.shared.parts.*;
 import com.tom.cpm.shared.skin.TextureProvider;
-import com.tom.cpm.shared.skin.TextureType;
-import it.unimi.dsi.fastutil.ints.Int2IntArrayMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectAVLTreeMap;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandManager;
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback;
 import net.minecraft.Util;
-import net.minecraft.client.Minecraft;
 import xyz.bluspring.cpmmodelexport.mixin.*;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
 import java.util.zip.ZipEntry;
-import java.util.zip.ZipFile;
 import java.util.zip.ZipOutputStream;
 
+@SuppressWarnings("UnreachableCode")
 public class CPMModelExportClient implements ClientModInitializer {
     /**
      * Runs the mod initializer on the client environment.
@@ -57,23 +46,43 @@ public class CPMModelExportClient implements ClientModInitializer {
 
                             var loader = CustomPlayerModelsClient.mc.getDefinitionLoader();
                             var url = StringArgumentType.getString(ctx, "url");
-                            var definition = new ModelDefinition(loader, CustomPlayerModelsClient.mc.getCurrentClientPlayer());
+                            //var definition = new ModelDefinition(loader, CustomPlayerModelsClient.mc.getCurrentClientPlayer());
                             try {
-                                var link = new Link("git", url);
+                                var player = CustomPlayerModelsClient.mc.getCurrentClientPlayer();
+                                var file = new File(url);
+                                //var link = new Link("local", url);
 
-                                var list = new LinkedList<IModelPart>();
+                                //var list = new LinkedList<IModelPart>();
 
-                                var skinType = new ModelPartDefinitionLink(link);
-                                ((ModelPartLinkAccessor) skinType).setDef(definition);
+                                //var skinType = new ModelPartDefinitionLink(link);
 
-                                var part = (ModelPartDefinition) skinType.resolve();
+                                //((ModelPartLinkAccessor) skinType).setDef(definition);
 
-                                list.add(part);
-                                definition.setParts(list);
+                                //var part = (ModelPartDefinition) skinType.resolve();
+
+                                //list.add(part);
+                                //definition.setParts(list);
+
+                                var fout = new FileInputStream(file);
+
+                                if (fout.read() != ModelDefinitionLoader.HEADER)
+                                    throw new IllegalStateException("aaa");
+
+                                var cos = new ChecksumInputStream(fout);
+                                IOHelper h = new IOHelper(cos);
+                                var n = h.readUTF();
+                                var d = h.readUTF();
+                                var dataLen = h.readVarInt();
+
+                                var byteArray = new byte[dataLen];
+                                h.readFully(byteArray);
+
+                                var definition = loader.loadModel(byteArray, player);
+                                ModelPartDefinition part = (ModelPartDefinition) ((ModelDefinitionAccessor) definition).getParts().get(1);
 
                                 CustomPlayerModelsClient.mc.getCurrentClientPlayer().setModelDefinition(CompletableFuture.completedFuture(definition));
 
-                                var name = "autumn_model";
+                                var name = "genie_model";
                                 File models = new File(MinecraftClientAccess.get().getGameDir(), "player_models");
                                 models.mkdirs();
                                 File out = new File(models, name.replaceAll("[^a-zA-Z0-9\\.\\-]", "") + ".cpmproject");
@@ -108,7 +117,7 @@ public class CPMModelExportClient implements ClientModInitializer {
                                         skinData = new TextureProvider(readIo, null);
                                     }
 
-                                    if (other instanceof ModelPartPlayer player) {
+                                    if (other instanceof ModelPartPlayer p) {
 
                                     }
                                 }
@@ -262,7 +271,7 @@ public class CPMModelExportClient implements ClientModInitializer {
                                     if (childrenIdx != null) {
                                         var children = new JsonArray();
                                         for (int idx : childrenIdx) {
-                                            var child = newElements.containsKey(idx) ? newElements.get(idx) : mainElements.get(idx);
+                                            var child = mainElements.get(idx);
                                             children.add(child);
                                         }
 
@@ -275,13 +284,13 @@ public class CPMModelExportClient implements ClientModInitializer {
                                 for (JsonObject element : mainElements) {
                                     var internalId = element.get("internal_id").getAsInt();
 
-                                    if (internalId == 21) {
+                                    if (internalId > 5) {
                                         var childrenIdx = parentChildMapping.get(internalId);
 
                                         if (childrenIdx != null) {
                                             var children = new JsonArray();
                                             for (int idx : childrenIdx) {
-                                                var child = newElements.containsKey(idx) ? newElements.get(idx) : mainElements.get(idx);
+                                                var child = mainElements.get(idx);
                                                 children.add(child);
                                             }
 
@@ -309,8 +318,8 @@ public class CPMModelExportClient implements ClientModInitializer {
 
                                 configJson.add("elements", elements);
 
-                                FileOutputStream fout = new FileOutputStream(out);
-                                var zout = new ZipOutputStream(fout);
+                                FileOutputStream fout2 = new FileOutputStream(out);
+                                var zout = new ZipOutputStream(fout2);
 
                                 zout.putNextEntry(new ZipEntry("config.json"));
                                 zout.write(gson.toJson(configJson).getBytes(StandardCharsets.UTF_8));

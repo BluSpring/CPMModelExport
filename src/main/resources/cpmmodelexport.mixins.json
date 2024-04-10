@@ -9,6 +9,7 @@
         "EffectHideSkullAccessor",
         "EffectRemoveArmorOffsetAccessor",
         "EffectScaleAccessor",
+        "ModelDefinitionAccessor",
         "ModelPartAnimationAccessor",
         "ModelPartDefinitionAccessor",
         "ModelPartLinkAccessor",
