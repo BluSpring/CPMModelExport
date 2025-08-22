@@ -80,7 +80,7 @@ public class CPMModelExportClient implements ClientModInitializer {
                                 var definition = loader.loadModel(byteArray, player);
                                 ModelPartDefinition part = (ModelPartDefinition) ((ModelDefinitionAccessor) definition).getParts().get(1);
 
-                                CustomPlayerModelsClient.mc.getCurrentClientPlayer().setModelDefinition(CompletableFuture.completedFuture(definition));
+                                CustomPlayerModelsClient.mc.getCurrentClientPlayer().setModelDefinition(CompletableFuture.completedFuture(definition), true);
 
                                 var name = "genie_model";
                                 File models = new File(MinecraftClientAccess.get().getGameDir(), "player_models");

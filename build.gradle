@@ -1,5 +1,5 @@
 plugins {
-    id 'fabric-loom' version '1.5-SNAPSHOT'
+    id 'fabric-loom' version '1.10-SNAPSHOT'
     id 'maven-publish'
 }
 
@@ -32,7 +32,7 @@ dependencies {
 
     // Fabric API. This is technically optional, but you probably want it anyway.
     modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
-    modImplementation "maven.modrinth:custom-player-models:1.20v0.6.15a-fabric"
+    modImplementation "maven.modrinth:custom-player-models:1.20v0.6.24a-fabric"
 }
 
 processResources {
